@@ -4,3 +4,5 @@ dist
 .env.local
 .DS_Store
 .vercel
+# Mots de passe : jamais dans git
+scripts/
