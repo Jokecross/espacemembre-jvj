@@ -279,7 +279,7 @@ function JourZero({ prompt, ouvert, onToggle }) {
     <section
       className={`overflow-hidden rounded-[18px] bg-surface transition ${
         ouvert
-          ? 'border-[1.5px] border-accent/35 shadow-[0_10px_30px_rgba(174,0,0,.22)]'
+          ? 'border-[1.5px] border-accent/35 shadow-[0_10px_30px_rgba(227,182,79,.16)]'
           : 'border border-line shadow-card hover:border-accent/25'
       }`}
     >
@@ -343,7 +343,7 @@ function Jour({ jour: j, ouvertEtat, onToggle, onDepose, secours }) {
     <section
       className={`overflow-hidden rounded-[18px] bg-surface transition ${
         ouvertEtat
-          ? 'border-[1.5px] border-accent/35 shadow-[0_10px_30px_rgba(174,0,0,.22)]'
+          ? 'border-[1.5px] border-accent/35 shadow-[0_10px_30px_rgba(227,182,79,.16)]'
           : 'border border-line shadow-card hover:border-accent/25'
       }`}
     >

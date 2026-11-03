@@ -17,7 +17,7 @@ export default function ProgrammeVerrouille({ etat }) {
 
   const restants = etat.jour_deblocage - etat.jour
   const n = etat.modules_avant ?? 1
-  const ouverts = n > 1 ? `tes ${n} premiers modules` : 'ton premier module'
+  const ouverts = n > 1 ? `tes ${n} premières vidéos` : 'ta première vidéo'
 
   return (
     <section className="card flex flex-wrap items-center gap-4 border-accent/25 bg-gradient-to-r from-accent-pastel to-surface p-5">
@@ -31,7 +31,7 @@ export default function ProgrammeVerrouille({ etat }) {
         </b>
         <span className="text-sm">
           {restants === 1
-            ? 'Demain, tous tes modules seront accessibles. En attendant, avance sur ton workshop.'
+            ? 'Demain, toutes tes vidéos seront accessibles. En attendant, avance sur ton workshop.'
             : `Encore ${restants} jours. En attendant, tu as ${ouverts} et ton workshop.`}
         </span>
       </div>

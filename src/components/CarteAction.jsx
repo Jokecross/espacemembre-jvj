@@ -154,7 +154,7 @@ function decider({ etat, intros, parcours, introFaite }) {
     icone: 'valide',
     titre: 'Tu as terminé ton programme',
     texte:
-      'Tes modules sont tous vus et ton workshop est terminé. Maintenant, tout se joue dans ce que tu publies chaque jour.',
+      'Tes vidéos sont toutes vues et ton workshop est terminé. Maintenant, tout se joue dans ce que tu publies chaque jour.',
     bouton: 'Revoir le workshop',
     lien: '/workshop',
   }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import Icone from '../components/Icone.jsx'
 import Anneau from '../components/Anneau.jsx'
@@ -77,7 +77,7 @@ export default function Modules({ member }) {
           <Compteur
             valeur={avancement}
             titre="Programme"
-            detail={`${faits} / ${parcours.length} modules`}
+            detail={`${faits} / ${parcours.length} vidéos`}
             texte={`${Math.round(avancement * 100)}%`}
           />
           {etat && !etat.dispense && !etat.equipe && (
@@ -128,7 +128,7 @@ export default function Modules({ member }) {
             </h2>
           </div>
           <p className="text-[13px] text-muted">
-            <b className="font-title text-navy">{faits}</b> / {parcours.length} modules terminés
+            <b className="font-title text-navy">{faits}</b> / {parcours.length} vidéos vues
           </p>
         </div>
 
@@ -162,7 +162,7 @@ export default function Modules({ member }) {
             <span className="font-body text-[14px] font-semibold text-muted">(TikTok Shop, etc.)</span>
           </h2>
           <p className="mt-1 text-[13.5px] text-muted">
-            Du plus, à regarder en complément : l'essentiel reste ton outil et les modules de ton
+            Du plus, à regarder en complément : l'essentiel reste ton outil et les vidéos de ton
             programme.
           </p>
 
@@ -227,6 +227,15 @@ function TuileChiffre({ titre, valeur, total }) {
 function CarteModule({ id, module: m, numero, raison, ouvert, onToggle }) {
   const part = Number(m.completion) || 0
   const fini = part >= 1
+  const navigate = useNavigate()
+  // Le programme de JVJ est une suite de vidéos : une carte = une vidéo, un
+  // appui l'ouvre directement, sans liste à déplier.
+  const uneVideo = Number(m.lesson_count) === 1
+
+  async function ouvrirVideo() {
+    const { data } = await supabase.from('lessons').select('id').eq('module_id', m.id).limit(1).maybeSingle()
+    if (data) navigate(`/lecon/${data.id}`)
+  }
 
   if (!m.unlocked) {
     return (
@@ -247,11 +256,11 @@ function CarteModule({ id, module: m, numero, raison, ouvert, onToggle }) {
       id={id}
       className={`overflow-hidden rounded-[18px] bg-surface transition ${
         ouvert
-          ? 'border-[1.5px] border-accent/35 shadow-[0_10px_30px_rgba(174,0,0,.22)]'
+          ? 'border-[1.5px] border-accent/35 shadow-[0_10px_30px_rgba(227,182,79,.16)]'
           : 'border border-line shadow-card hover:border-accent/25'
       }`}
     >
-      <button onClick={onToggle} className="flex w-full items-center gap-3.5 p-4 text-left sm:px-5">
+      <button onClick={uneVideo ? ouvrirVideo : onToggle} className="flex w-full items-center gap-3.5 p-4 text-left sm:px-5">
         <span
           className={`grid h-[38px] w-[38px] flex-none place-items-center rounded-xl font-title text-sm font-extrabold ${
             fini ? 'bg-success-bg text-success' : 'bg-accent text-on-accent'
@@ -263,22 +272,26 @@ function CarteModule({ id, module: m, numero, raison, ouvert, onToggle }) {
         <span className="min-w-0 flex-1">
           <b className="block font-title text-[15px] font-extrabold text-navy">{m.title}</b>
           <span className="text-[13px] text-muted">
-            {fini
+            {uneVideo
+              ? (fini ? 'Vidéo vue' : 'À regarder')
+              : fini
               ? `${m.lesson_count} leçons · terminé`
               : `${m.done_count} leçon${m.done_count > 1 ? 's' : ''} sur ${m.lesson_count} · en cours`}
           </span>
         </span>
 
-        <Anneau
-          valeur={part}
-          taille={38}
-          epaisseur={4}
-          couleur={fini ? '#5BC98C' : '#E3B64F'}
-          texte=""
-        />
+        {!uneVideo && (
+          <Anneau
+            valeur={part}
+            taille={38}
+            epaisseur={4}
+            couleur={fini ? '#5BC98C' : '#E3B64F'}
+            texte=""
+          />
+        )}
       </button>
 
-      {ouvert && <ListeLecons moduleId={m.id} />}
+      {ouvert && !uneVideo && <ListeLecons moduleId={m.id} />}
     </section>
   )
 }
