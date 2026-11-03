@@ -182,7 +182,7 @@ export default function Lesson() {
                   <div className="flex h-full flex-col items-center justify-center gap-3.5 bg-[#111113] px-6 text-center">
                     <Couronne className="h-[17px] w-6 text-accent/70" />
                     <span className="text-sm text-muted">
-                      {error ? 'Cette vidéo arrive très bientôt.' : 'Préparation de la vidéo…'}
+                      {/pas encore de contenu/.test(error) ? 'Cette vidéo arrive très bientôt.' : error || 'Préparation de la vidéo…'}
                     </span>
                   </div>
                 )}
