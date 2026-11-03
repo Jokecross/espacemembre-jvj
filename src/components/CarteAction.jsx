@@ -123,7 +123,7 @@ function decider({ etat, intros, parcours, introFaite }) {
     return {
       etiquette: neuf ? 'Nouveau' : 'Ta prochaine action',
       icone: 'outil',
-      titre: neuf ? 'Ton premier client en 7 jours' : `Jour ${etat.jour} de ton workshop`,
+      titre: neuf ? 'Ton outil en 7 jours' : `Jour ${etat.jour} de ton workshop`,
       texte: neuf
         ? `Sept jours, sept prompts à coller dans ${OUTIL} : ton ${APP} prend forme jour après jour.`
         : `Un prompt à coller dans ${OUTIL}. Quelques minutes, et ton ${APP} avance d'un cran.`,

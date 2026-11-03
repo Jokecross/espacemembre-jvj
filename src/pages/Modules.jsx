@@ -158,8 +158,7 @@ export default function Modules({ member }) {
         <section className="mt-10">
           <p className="eyebrow">Bonus</p>
           <h2 className="mt-1 font-title text-[19px] font-extrabold tracking-tight text-navy">
-            Modules vidéo bonus{' '}
-            <span className="font-body text-[14px] font-semibold text-muted">(TikTok Shop, etc.)</span>
+            Vidéos bonus
           </h2>
           <p className="mt-1 text-[13.5px] text-muted">
             Du plus, à regarder en complément : l'essentiel reste ton outil et les vidéos de ton

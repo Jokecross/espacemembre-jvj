@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase.js'
 import Icone from './Icone.jsx'
-import { APP, MARQUE, OFFRE, OUTIL } from '../lib/marque'
+import { APP, OFFRE, OUTIL } from '../lib/marque'
 
 const TOTAL = 4
 
@@ -328,9 +328,9 @@ function Workshop({ onSuivant }) {
       <div className="mt-5 rounded-2xl border-[1.5px] border-accent/60 bg-canvas p-5">
         <p className="font-title font-bold text-navy">Les trois premiers jours comptent double</p>
         <p className="mt-1.5 text-[15px] leading-relaxed">
-          Au <b className="text-navy">jour 3</b>, tous les modules de ta formule se débloquent
+          Au <b className="text-navy">jour 3</b>, toutes les vidéos de ton offre se débloquent
           d'un coup. En attendant,{' '}
-          <b className="text-navy">tes deux premiers modules sont déjà ouverts</b> : tu peux
+          <b className="text-navy">tes trois premières vidéos sont déjà ouvertes</b> : tu peux
           commencer dès ce soir.
         </p>
       </div>

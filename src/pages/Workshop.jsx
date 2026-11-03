@@ -161,7 +161,7 @@ export default function Workshop() {
     <>
       <p className="eyebrow">Ton workshop</p>
       <h1 className="mt-1.5 font-title text-[25px] font-extrabold tracking-tight text-navy sm:text-[31px]">
-        Ton premier client en 7 jours
+        Ton outil en 7 jours
       </h1>
       <p className="mt-2.5 max-w-[62ch] text-[15px] leading-relaxed">
         Un prompt par jour à coller dans {OUTIL}. Jour après jour, ton {APP} prend forme : c'est

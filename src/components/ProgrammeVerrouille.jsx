@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import Icone from './Icone.jsx'
 import { supabase } from '../lib/supabase.js'
 
 /**
@@ -21,11 +22,13 @@ export default function ProgrammeVerrouille({ etat }) {
 
   return (
     <section className="card flex flex-wrap items-center gap-4 border-accent/25 bg-gradient-to-r from-accent-pastel to-surface p-5">
-      <span className="grid h-12 w-12 flex-none place-items-center rounded-2xl bg-surface text-xl shadow-card">
-        🔓
+      <span className="grid h-12 w-12 flex-none place-items-center rounded-2xl bg-surface text-accent shadow-card">
+        <Icone nom="cadenas" taille={20} />
       </span>
 
-      <div className="min-w-0 flex-1">
+      {/* Largeur minimale : sous ce seuil, le bouton passe à la ligne au lieu
+          d'écraser le texte en un mot par ligne. */}
+      <div className="min-w-[200px] flex-1">
         <b className="block font-title font-extrabold text-navy">
           Tout ton programme s'ouvre au jour {etat.jour_deblocage} de ton workshop
         </b>

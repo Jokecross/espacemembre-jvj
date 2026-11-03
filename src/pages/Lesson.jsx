@@ -116,7 +116,7 @@ export default function Lesson() {
         {/* ---------- La vidéo ---------- */}
         <div className="min-w-0">
           <p className="eyebrow">
-            Module {lesson.modules?.position} · {lesson.modules?.title}
+            Vidéo {lesson.modules?.position}
           </p>
           <h1 className="mt-2 font-title text-[23px] font-extrabold leading-tight tracking-tight text-navy sm:text-[28px]">
             {lesson.title}
@@ -197,7 +197,7 @@ export default function Lesson() {
           <aside>
             <div className="card p-[18px] lg:sticky lg:top-6">
               <div className="flex items-baseline justify-between gap-2">
-                <p className="eyebrow">Module {lesson.modules?.position}</p>
+                <p className="eyebrow">Vidéo {lesson.modules?.position}</p>
                 <span className="text-xs font-bold text-accent">
                   {faites} / {total}
                 </span>

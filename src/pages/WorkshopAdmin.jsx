@@ -161,7 +161,7 @@ function Reglages({ reglages, onChange }) {
             rows={8}
             value={form.prompt_secours || ''}
             onChange={(e) => setForm({ ...form, prompt_secours: e.target.value })}
-            placeholder="Quelque chose ne marche plus dans mon premier site : […]"
+            placeholder="Quelque chose ne marche plus dans mon outil : […]"
           />
         </label>
       </div>

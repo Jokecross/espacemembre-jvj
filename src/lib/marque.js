@@ -11,6 +11,6 @@ export const OFFRE = 'Formation IA'
 export const OUTIL = 'Base44'
 
 // Ce que ces prompts construisent, étape par étape. Écrit pour se lire
-// après « ton » : « ton premier site prend forme ».
+// après « ton » : « ton outil prend forme ».
 // [À CONFIRMER] avec JVJ : ce que le workshop construit vraiment.
 export const APP = 'outil'

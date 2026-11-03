@@ -146,8 +146,8 @@ export default function Contenu() {
 
       <h2 className="mt-10 text-lg">Modules vidéo bonus</h2>
       <p className="mt-1 text-sm">
-        Affichés sous « Ton programme » (TikTok Shop, etc.) : un titre et sa vidéo, rien
-        d'autre. Ouverts aux deux formules, dès l'arrivée de l'élève.
+        Affichés sous « Ton programme » : un titre et sa vidéo, rien d'autre. Ouverts à
+        toutes les offres, dès l'arrivée de l'élève.
       </p>
 
       <section className="card mt-4 overflow-hidden">
