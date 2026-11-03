@@ -244,7 +244,7 @@ function CarteModule({ id, module: m, numero, raison, ouvert, onToggle }) {
           <Icone nom="cadenas" taille={17} />
         </span>
         <span className="min-w-0 flex-1">
-          <b className="block font-title text-[15px] font-extrabold text-navy">{m.title}</b>
+          <b className="block font-title text-[15px] font-extrabold text-navy">{numero}. {m.title}</b>
           <span className="text-[13px] text-muted">{raison}</span>
         </span>
       </div>
@@ -266,11 +266,11 @@ function CarteModule({ id, module: m, numero, raison, ouvert, onToggle }) {
             fini ? 'bg-success-bg text-success' : 'bg-accent text-on-accent'
           }`}
         >
-          {fini ? <Icone nom="valide" taille={18} epaisseur={2.2} /> : numero}
+          {fini ? <Icone nom="valide" taille={18} epaisseur={2.2} /> : uneVideo ? <Icone nom="lecture" taille={16} /> : numero}
         </span>
 
         <span className="min-w-0 flex-1">
-          <b className="block font-title text-[15px] font-extrabold text-navy">{m.title}</b>
+          <b className="block font-title text-[15px] font-extrabold text-navy">{uneVideo ? `${numero}. ${m.title}` : m.title}</b>
           <span className="text-[13px] text-muted">
             {uneVideo
               ? (fini ? 'Vidéo vue' : 'À regarder')
