@@ -87,7 +87,7 @@ function Bienvenue({ prenom, onSuivant }) {
       <h1 className="mt-5 text-[26px] leading-tight sm:text-3xl">
         Bienvenue dans ta
         <br />
-        <span className="text-accent">{OFFRE}</span>
+        <span className="mot-or">{OFFRE}</span>
         {prenom ? `, ${prenom}` : ''}.
       </h1>
 

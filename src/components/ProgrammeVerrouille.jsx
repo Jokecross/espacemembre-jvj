@@ -22,7 +22,7 @@ export default function ProgrammeVerrouille({ etat }) {
 
   return (
     <section className="card flex flex-wrap items-center gap-4 border-accent/25 bg-gradient-to-r from-accent-pastel to-surface p-5">
-      <span className="grid h-12 w-12 flex-none place-items-center rounded-2xl bg-surface text-accent shadow-card">
+      <span className="grid h-12 w-12 flex-none place-items-center rounded-2xl border border-accent/25 bg-accent/[.08] text-accent">
         <Icone nom="cadenas" taille={20} />
       </span>
 
@@ -39,7 +39,7 @@ export default function ProgrammeVerrouille({ etat }) {
         </span>
       </div>
 
-      <Link to="/workshop" className="btn whitespace-nowrap px-5 py-2.5 text-sm">
+      <Link to="/workshop" className="btn w-full whitespace-nowrap px-5 py-2.5 text-[13px] sm:w-auto">
         {etat.jour === 0 ? 'Voir le workshop' : `Faire le jour ${etat.jour}`}
       </Link>
     </section>

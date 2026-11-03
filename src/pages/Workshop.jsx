@@ -160,8 +160,8 @@ export default function Workshop() {
   return (
     <>
       <p className="eyebrow">Ton workshop</p>
-      <h1 className="mt-1.5 font-title text-[25px] font-extrabold tracking-tight text-navy sm:text-[31px]">
-        Ton outil en 7 jours
+      <h1 className="mt-2 font-title text-[28px] font-bold tracking-tight text-navy sm:text-[38px]">
+        Ton outil en <span className="mot-or">7 jours</span>
       </h1>
       <p className="mt-2.5 max-w-[62ch] text-[15px] leading-relaxed">
         Un prompt par jour à coller dans {OUTIL}. Jour après jour, ton {APP} prend forme : c'est
@@ -169,27 +169,23 @@ export default function Workshop() {
       </p>
 
       {introAFaire ? (
-        <section className="relative mt-6 overflow-hidden rounded-[22px] border border-line-strong bg-panel p-6 shadow-[0_18px_40px_rgba(0,0,0,.18)] sm:p-8">
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-accent-light/[.14]"
-          />
+        <section className="carte-phare mt-6">
           <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
             <div className="min-w-0 flex-1">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-surface/[.12] px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[.12em] text-[#DDE1E7]">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/[.08] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[.14em] text-accent">
                 <Icone nom="lecture" taille={14} /> Une étape avant
               </span>
               <h2 className="mt-3.5 font-title text-[22px] font-extrabold leading-tight text-navy sm:text-[26px]">
                 Regarde ton introduction pour ouvrir le jour 1
               </h2>
-              <p className="mt-2.5 max-w-[42ch] text-[15px] leading-relaxed text-[#C9C2B2]">
+              <p className="mt-2.5 max-w-[42ch] text-[15px] leading-relaxed text-ink">
                 Quelques minutes de vidéo, et ton workshop démarre. C'est la seule chose qui te
                 sépare de ton premier prompt.
               </p>
             </div>
             <Link
               to="/"
-              className="inline-flex items-center justify-center gap-2.5 whitespace-nowrap rounded-full bg-surface px-7 py-3.5 font-title text-[15px] font-extrabold text-navy transition hover:-translate-y-0.5"
+              className="btn whitespace-nowrap px-7 py-3.5"
             >
               Regarder l'introduction
               <Icone nom="fleche" taille={18} />
@@ -277,10 +273,10 @@ function VideoSysteme({ url }) {
 function JourZero({ prompt, ouvert, onToggle }) {
   return (
     <section
-      className={`overflow-hidden rounded-[18px] bg-surface transition ${
+      className={`overflow-hidden rounded-2xl bg-[#111113] transition ${
         ouvert
-          ? 'border-[1.5px] border-accent/35 shadow-[0_10px_30px_rgba(227,182,79,.16)]'
-          : 'border border-line shadow-card hover:border-accent/25'
+          ? 'border border-accent/45'
+          : 'border border-white/[.07] shadow-card hover:border-accent/30'
       }`}
     >
       <button onClick={onToggle} className="flex w-full items-center gap-3.5 p-4 text-left sm:px-5">
@@ -322,35 +318,34 @@ function JourZero({ prompt, ouvert, onToggle }) {
 function Jour({ jour: j, ouvertEtat, onToggle, onDepose, secours }) {
   if (!j.ouvert) {
     return (
-      <div className="card flex items-center gap-3.5 p-4 opacity-[.55] sm:px-5">
-        <span className="grid h-[38px] w-[38px] flex-none place-items-center rounded-xl bg-canvas text-muted">
-          <Icone nom="cadenas" taille={17} />
-        </span>
+      <div className="ligne-video verrou">
+        <span className="num-video">{String(j.jour).padStart(2, '0')}</span>
         <span className="min-w-0 flex-1">
-          <b className="block font-title text-[15px] font-extrabold text-navy">
+          <b className="block font-title text-[15.5px] font-semibold text-muted sm:text-[16.5px]">
             {intitule(j)}
           </b>
           {sousTitre(j) && (
-            <span className="line-clamp-2 text-[13px] text-muted">{sousTitre(j)}</span>
+            <span className="line-clamp-2 text-[13px] text-muted/70">{sousTitre(j)}</span>
           )}
         </span>
         <Compte ouvreLe={j.ouvre_le} />
+        <span className="rond-etat hidden text-muted/60 sm:grid">
+          <Icone nom="cadenas" taille={16} />
+        </span>
       </div>
     )
   }
 
   return (
     <section
-      className={`overflow-hidden rounded-[18px] bg-surface transition ${
+      className={`overflow-hidden rounded-2xl bg-[#111113] transition ${
         ouvertEtat
-          ? 'border-[1.5px] border-accent/35 shadow-[0_10px_30px_rgba(227,182,79,.16)]'
-          : 'border border-line shadow-card hover:border-accent/25'
+          ? 'border border-accent/45'
+          : 'border border-white/[.07] shadow-card hover:border-accent/30'
       }`}
     >
       <button onClick={onToggle} className="flex w-full items-center gap-3.5 p-4 text-left sm:px-5">
-        <span className="grid h-[38px] w-[38px] flex-none place-items-center rounded-xl bg-accent font-title text-sm font-extrabold text-on-accent">
-          {j.jour}
-        </span>
+        <span className="num-video">{String(j.jour).padStart(2, '0')}</span>
         <span className="min-w-0 flex-1">
           <b className="block font-title text-[15px] font-extrabold text-navy">
             {intitule(j)}

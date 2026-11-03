@@ -29,7 +29,7 @@ export default function Outils() {
       </Link>
 
       <p className="eyebrow mt-6">Ton équipement</p>
-      <h1 className="mt-1.5 text-3xl">Outils pour bien avancer</h1>
+      <h1 className="mt-2 font-title text-[28px] font-bold tracking-tight text-navy sm:text-[38px]">Outils pour bien <span className="mot-or">avancer</span></h1>
       <p className="mt-2 text-sm">
         Les outils qu'on utilise au quotidien, avec leurs liens et les éventuels codes de réduction.
       </p>

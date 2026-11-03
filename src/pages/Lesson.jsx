@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import OutilsSousVideo from '../components/OutilsSousVideo.jsx'
 import Icone from '../components/Icone.jsx'
-import Anneau from '../components/Anneau.jsx'
+import Couronne from '../components/Couronne.jsx'
 
 export default function Lesson() {
   const { lessonId } = useParams()
@@ -12,9 +12,9 @@ export default function Lesson() {
   const [video, setVideo] = useState(null) // null = pas encore reçu ; { kind, url }
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
-  // Les leçons du module, pour la colonne de droite : savoir où on en est
-  // et ce qui vient après compte autant que la vidéo elle-même.
-  const [voisines, setVoisines] = useState(null)
+  // Tout le programme de l'élève, pour la colonne de droite : savoir où on
+  // en est et ce qui vient après compte autant que la vidéo elle-même.
+  const [programme, setProgramme] = useState(null)
 
   useEffect(() => {
     let alive = true
@@ -48,17 +48,25 @@ export default function Lesson() {
           .maybeSingle()
         if (alive) setDone(!!p)
 
-        const [{ data: liste }, { data: vues }] = await Promise.all([
-          supabase
-            .from('lessons')
-            .select('id, position, title, duration_seconds')
-            .eq('module_id', data.module_id)
-            .order('position'),
+        const [{ data: mods }, { data: liste }, { data: vues }] = await Promise.all([
+          supabase.rpc('my_modules'),
+          // RLS ne renvoie que les vidéos ouvertes : les autres restent
+          // visibles dans la liste, mais sans lien.
+          supabase.from('lessons').select('id, module_id, position, title, duration_seconds').order('position'),
           supabase.from('lesson_progress').select('lesson_id'),
         ])
         if (!alive) return
         const faites = new Set((vues || []).map((v) => v.lesson_id))
-        setVoisines((liste || []).map((l) => ({ ...l, vue: faites.has(l.id) })))
+        setProgramme(
+          (mods || [])
+            .filter((m) => !m.is_intro && !m.is_bonus)
+            .flatMap((m) => {
+              const siennes = (liste || []).filter((l) => l.module_id === m.id)
+              return siennes.length
+                ? siennes.map((l) => ({ ...l, vue: faites.has(l.id), ouverte: true }))
+                : [{ id: `module-${m.id}`, title: m.title, vue: false, ouverte: false }]
+            })
+        )
 
         // L'URL de lecture est signée côté serveur et expire au bout de
         // trois heures : copiée ailleurs, elle ne sert plus très longtemps.
@@ -80,13 +88,19 @@ export default function Lesson() {
     if (done) {
       await supabase.from('lesson_progress').delete().eq('lesson_id', lesson.id)
       setDone(false)
+      marquer(false)
     } else {
       const { data: s } = await supabase.auth.getSession()
       await supabase
         .from('lesson_progress')
         .insert({ lesson_id: lesson.id, member_id: s.session.user.id })
       setDone(true)
+      marquer(true)
     }
+  }
+
+  function marquer(vue) {
+    setProgramme((p) => p?.map((l) => (String(l.id) === String(lesson.id) ? { ...l, vue } : l)) ?? p)
   }
 
   if (!lesson) return <p className="text-muted">Chargement…</p>
@@ -95,16 +109,18 @@ export default function Lesson() {
   // qu'à son document.
   const sansVideo = !!video && !video.kind && !error
 
-  const total = voisines?.length || 0
-  const faites = voisines?.filter((l) => l.vue).length || 0
-  const indice = voisines?.findIndex((l) => String(l.id) === String(lesson.id)) ?? -1
-  const suivante = indice >= 0 ? voisines?.[indice + 1] : null
+  const total = programme?.length || 0
+  const faites = programme?.filter((l) => l.vue).length || 0
+  const indice = programme?.findIndex((l) => String(l.id) === String(lesson.id)) ?? -1
+  const precedente = indice > 0 ? programme[indice - 1] : null
+  const suivante = indice >= 0 ? programme?.[indice + 1] : null
+  const numero = indice >= 0 ? indice + 1 : lesson.modules?.position
 
   return (
     <>
       <Link
         to="/"
-        className="inline-flex items-center gap-1.5 text-sm font-bold text-accent hover:underline"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted transition hover:text-accent"
       >
         <span className="rotate-180">
           <Icone nom="fleche" taille={15} />
@@ -112,13 +128,14 @@ export default function Lesson() {
         Retour au programme
       </Link>
 
-      <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] xl:gap-10">
         {/* ---------- La vidéo ---------- */}
         <div className="min-w-0">
-          <p className="eyebrow">
-            Vidéo {lesson.modules?.position}
+          <p className="eyebrow text-accent">
+            Vidéo {numero}
+            {total > 0 && <span className="text-muted"> sur {total}</span>}
           </p>
-          <h1 className="mt-2 font-title text-[23px] font-extrabold leading-tight tracking-tight text-navy sm:text-[28px]">
+          <h1 className="mt-2 font-title text-[27px] font-bold leading-tight tracking-tight text-navy sm:text-[36px]">
             {lesson.title}
           </h1>
 
@@ -129,9 +146,8 @@ export default function Lesson() {
           )}
 
           {lesson.avertissement && (
-            <div className="mt-5 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
-              <span aria-hidden="true" className="text-lg leading-tight">⚠️</span>
-              <p className="whitespace-pre-line text-sm font-semibold leading-relaxed text-red-700">
+            <div className="mt-5 flex gap-3 rounded-xl border border-accent/30 bg-accent/[.07] p-4">
+              <p className="whitespace-pre-line text-sm font-semibold leading-relaxed text-navy">
                 {lesson.avertissement}
               </p>
             </div>
@@ -142,130 +158,147 @@ export default function Lesson() {
               restait sur « Préparation de la vidéo… » indéfiniment. On ne
               l'affiche plus du tout dans ce cas. */}
           {!sansVideo && (
-          <div className="mt-5 aspect-video overflow-hidden rounded-[18px] bg-panel shadow-[0_18px_40px_rgba(0,0,0,.18)]">
-            {video?.kind === 'lecteur' ? (
-              <iframe
-                key={video.url}
-                src={video.url}
-                title={lesson.title}
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-                className="h-full w-full border-0"
-              />
-            ) : video?.kind ? (
-              <video
-                key={video.url}
-                src={video.url}
-                controls
-                controlsList="nodownload"
-                onContextMenu={(e) => e.preventDefault()}
-                className="h-full w-full"
-              />
-            ) : (
-              <div className="grid h-full place-items-center px-6 text-center text-sm text-[#DDE1E7]">
-                {error || 'Préparation de la vidéo…'}
+            <div className="mt-6 rounded-[22px] bg-gradient-to-b from-white/[.14] to-white/[.03] p-[5px] shadow-[0_40px_80px_-40px_rgba(0,0,0,.95)]">
+              <div className="aspect-video overflow-hidden rounded-[18px] bg-black">
+                {video?.kind === 'lecteur' ? (
+                  <iframe
+                    key={video.url}
+                    src={video.url}
+                    title={lesson.title}
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowFullScreen
+                    className="h-full w-full border-0"
+                  />
+                ) : video?.kind ? (
+                  <video
+                    key={video.url}
+                    src={video.url}
+                    controls
+                    controlsList="nodownload"
+                    onContextMenu={(e) => e.preventDefault()}
+                    className="h-full w-full"
+                  />
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center gap-3.5 bg-[#111113] px-6 text-center">
+                    <Couronne className="h-[17px] w-6 text-accent/70" />
+                    <span className="text-sm text-muted">
+                      {error ? 'Cette vidéo arrive très bientôt.' : 'Préparation de la vidéo…'}
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </div>
           )}
 
-          {/* Les deux actions, côte à côte */}
-          <div className="mt-5 flex flex-wrap gap-3">
-            <button onClick={toggleDone} className={done ? 'btn-ghost' : 'btn'}>
+          {/* Les actions : valider, puis avancer */}
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <button onClick={toggleDone} className={`${done ? 'btn-ghost' : 'btn'} w-full sm:w-auto`}>
               {done ? (
                 <>
-                  <Icone nom="valide" taille={17} epaisseur={2.2} /> Leçon terminée
+                  <Icone nom="valide" taille={17} epaisseur={2.2} className="text-accent" /> Vidéo terminée
                 </>
               ) : (
-                "J'ai terminé cette leçon"
+                "J'ai terminé cette vidéo"
               )}
             </button>
 
             {video?.document && (
-              <a href={video.document.url} target="_blank" rel="noopener" className="btn-ghost">
+              <a href={video.document.url} target="_blank" rel="noopener" className="btn-ghost w-full sm:w-auto">
                 <Icone nom="document" taille={17} />
-                {video.document.name || 'Le document de la leçon'}
+                {video.document.name || 'Le document de la vidéo'}
               </a>
             )}
+
+            <div className="flex gap-3 sm:ml-auto">
+              {precedente?.ouverte && (
+                <Link to={`/lecon/${precedente.id}`} className="btn-ghost flex-1 sm:flex-none" aria-label="Vidéo précédente">
+                  <span className="rotate-180">
+                    <Icone nom="fleche" taille={16} />
+                  </span>
+                  <span className="sm:hidden">Précédente</span>
+                </Link>
+              )}
+              {suivante?.ouverte && (
+                <Link to={`/lecon/${suivante.id}`} className="btn-ghost flex-1 sm:flex-none">
+                  Vidéo suivante <Icone nom="fleche" taille={16} />
+                </Link>
+              )}
+            </div>
           </div>
 
           <OutilsSousVideo />
         </div>
 
-        {/* ---------- Le module, à droite ---------- */}
-        {voisines && voisines.length > 1 && (
-          <aside>
-            <div className="card p-[18px] lg:sticky lg:top-6">
-              <div className="flex items-baseline justify-between gap-2">
-                <p className="eyebrow">Vidéo {lesson.modules?.position}</p>
-                <span className="text-xs font-bold text-accent">
-                  {faites} / {total}
+        {/* ---------- Le programme, à droite ---------- */}
+        {programme && programme.length > 1 && (
+          <aside className="min-w-0">
+            <div className="card p-4 sm:p-5 lg:sticky lg:top-8">
+              <div className="flex items-baseline justify-between gap-2 px-1">
+                <b className="font-title text-[17px] font-bold tracking-tight text-navy">
+                  Ton <span className="mot-or">programme</span>
+                </b>
+                <span className="text-xs font-semibold text-muted">
+                  <span className="text-accent">{faites}</span> / {total}
                 </span>
               </div>
-              <b className="mt-1.5 block font-title text-[15px] font-extrabold text-navy">
-                {lesson.modules?.title}
-              </b>
 
-              <span className="mt-3 block h-1.5 w-full overflow-hidden rounded-full bg-line">
+              <span className="mx-1 mt-3 block h-1 overflow-hidden rounded-full bg-white/[.08]">
                 <span
                   className="block h-full rounded-full bg-accent transition-[width] duration-500"
                   style={{ width: `${total ? (faites / total) * 100 : 0}%` }}
                 />
               </span>
 
-              <div className="mt-3.5 flex flex-col gap-0.5">
-                {voisines.map((l, i) => {
+              <div className="mt-3 flex max-h-[420px] flex-col gap-0.5 overflow-y-auto pr-1 lg:max-h-[calc(100vh-190px)]">
+                {programme.map((l, i) => {
                   const actuelle = String(l.id) === String(lesson.id)
-                  return (
-                    <Link
-                      key={l.id}
-                      to={`/lecon/${l.id}`}
-                      className={`flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition ${
-                        actuelle ? 'bg-accent-pastel' : 'hover:bg-canvas'
-                      }`}
-                    >
+                  const contenu = (
+                    <>
                       <span
-                        className={`grid h-6 w-6 flex-none place-items-center rounded-full ${
-                          l.vue
-                            ? 'bg-success-bg text-success'
-                            : actuelle
-                              ? 'bg-accent text-on-accent'
-                              : 'bg-canvas text-muted'
+                        className={`w-7 flex-none font-serif text-[19px] italic leading-none ${
+                          l.ouverte ? 'text-accent' : 'text-muted/50'
                         }`}
                       >
-                        {l.vue ? (
-                          <Icone nom="valide" taille={13} epaisseur={2.4} />
-                        ) : actuelle ? (
-                          <Icone nom="lecture" taille={12} />
-                        ) : (
-                          <span className="text-[11px] font-bold">{i + 1}</span>
-                        )}
+                        {String(i + 1).padStart(2, '0')}
                       </span>
                       <span
-                        className={`min-w-0 flex-1 text-[13.5px] ${
-                          actuelle ? 'font-bold text-navy' : l.vue ? 'text-ink' : 'text-muted'
+                        className={`min-w-0 flex-1 text-[13.5px] leading-snug ${
+                          actuelle
+                            ? 'font-semibold text-navy'
+                            : l.ouverte
+                              ? 'text-ink'
+                              : 'text-muted/60'
                         }`}
                       >
                         {l.title}
                       </span>
-                      {l.duration_seconds > 0 && (
+                      {!l.ouverte ? (
+                        <Icone nom="cadenas" taille={14} className="flex-none text-muted/50" />
+                      ) : l.vue ? (
+                        <Icone nom="valide" taille={15} epaisseur={2.4} className="flex-none text-accent" />
+                      ) : actuelle ? (
+                        <Icone nom="lecture" taille={13} className="flex-none text-accent" />
+                      ) : l.duration_seconds > 0 ? (
                         <span className="flex-none text-[11px] text-muted">
                           {Math.round(l.duration_seconds / 60)} min
                         </span>
-                      )}
+                      ) : null}
+                    </>
+                  )
+                  const classes = `flex items-center gap-2.5 rounded-xl px-2 py-2.5 transition ${
+                    actuelle ? 'bg-accent/[.1]' : l.ouverte ? 'hover:bg-white/[.04]' : ''
+                  }`
+                  return l.ouverte ? (
+                    <Link key={l.id} to={`/lecon/${l.id}`} className={classes}>
+                      {contenu}
                     </Link>
+                  ) : (
+                    <div key={l.id} className={classes}>
+                      {contenu}
+                    </div>
                   )
                 })}
               </div>
-
-              {suivante && (
-                <Link
-                  to={`/lecon/${suivante.id}`}
-                  className="mt-3.5 flex items-center gap-1.5 border-t border-line pt-3.5 text-[13px] font-bold text-accent"
-                >
-                  Leçon suivante <Icone nom="fleche" taille={15} />
-                </Link>
-              )}
             </div>
           </aside>
         )}

@@ -34,9 +34,10 @@ export default {
         display: ['Inter Tight', 'Inter', 'sans-serif'],
         title: ['Inter Tight', 'Inter', 'system-ui', 'sans-serif'],
         body: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['Instrument Serif', 'Georgia', 'serif'],
       },
       boxShadow: {
-        card: '0 1px 0 rgba(255,255,255,.03) inset',
+        card: '0 1px 0 rgba(255,255,255,.05) inset',
         lift: '0 18px 40px rgba(0,0,0,.55)',
       },
     },
