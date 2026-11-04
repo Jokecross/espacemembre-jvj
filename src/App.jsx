@@ -11,6 +11,8 @@ import Workshop from './pages/Workshop.jsx'
 import BandeauWorkshop from './components/BandeauWorkshop.jsx'
 import Coquille from './components/Coquille.jsx'
 import GuideBienvenue from './components/GuideBienvenue.jsx'
+import WorkshopJour from './pages/WorkshopJour.jsx'
+import WorkshopSecours from './pages/WorkshopSecours.jsx'
 import TourGuide from './components/TourGuide.jsx'
 import { useEtatWorkshop } from './components/ProgrammeVerrouille.jsx'
 import { MARQUE, OFFRE } from './lib/marque'
@@ -99,6 +101,8 @@ export default function App() {
           <Route path="/lecon/:lessonId" element={<Lesson />} />
           <Route path="/outils" element={<Outils />} />
           <Route path="/workshop" element={<Workshop />} />
+          <Route path="/workshop/jour/:jour" element={<WorkshopJour />} />
+          <Route path="/workshop/secours" element={<WorkshopSecours />} />
           <Route
             path="/admin"
             element={equipe ? <Admin role={member.role} /> : <Navigate to="/" replace />}

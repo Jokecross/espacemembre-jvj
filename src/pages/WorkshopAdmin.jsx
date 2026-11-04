@@ -50,6 +50,8 @@ export default function WorkshopAdmin() {
           />
         ))}
       </div>
+
+      <SecoursAdmin />
     </>
   )
 }
@@ -73,7 +75,6 @@ function Reglages({ reglages, onChange }) {
         bandeau_lien_texte: form.bandeau_lien_texte,
         prompt_j0: form.prompt_j0 || null,
         video_systeme_url: form.video_systeme_url?.trim() || null,
-        prompt_secours: form.prompt_secours || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', 1)
@@ -151,22 +152,6 @@ function Reglages({ reglages, onChange }) {
       </div>
 
       <div className="border-t border-line pt-4">
-        <label className="block text-sm">
-          <span className="font-bold text-navy">Le prompt de secours</span>
-          <span className="mt-0.5 block text-xs text-muted">
-            Commun aux sept jours : il s'affiche en bonus sous le jour 7, et chaque jour y renvoie.
-          </span>
-          <textarea
-            className="field mt-2 font-mono text-xs"
-            rows={8}
-            value={form.prompt_secours || ''}
-            onChange={(e) => setForm({ ...form, prompt_secours: e.target.value })}
-            placeholder="Quelque chose ne marche plus dans mon outil : […]"
-          />
-        </label>
-      </div>
-
-      <div className="border-t border-line pt-4">
         <label className="flex items-center gap-2.5 text-sm font-bold text-navy">
           <input
             type="checkbox"
@@ -204,12 +189,14 @@ function Reglages({ reglages, onChange }) {
 function JourAdmin({ jour: j, ouvert, onToggle, onSave }) {
   const [form, setForm] = useState(j)
   const [etapes, setEtapes] = useState(() => etapesDe(j))
+  const [blocs, setBlocs] = useState(() => j.page?.blocs || null)
   const [busy, setBusy] = useState(false)
   const [erreur, setErreur] = useState('')
 
   useEffect(() => {
     setForm(j)
     setEtapes(etapesDe(j))
+    setBlocs(j.page?.blocs || null)
   }, [j])
 
   async function enregistrer() {
@@ -223,6 +210,8 @@ function JourAdmin({ jour: j, ouvert, onToggle, onSave }) {
         video_url: form.video_url || null,
         etapes: etapes.map((e) => e.trim()).filter(Boolean),
         prompt: form.prompt || null,
+        prompt_2: form.prompt_2 || null,
+        page: blocs ? { ...j.page, blocs: blocs.map(nettoyerBloc) } : j.page,
         consignes: form.consignes?.trim() || null,
         updated_at: new Date().toISOString(),
       })
@@ -356,6 +345,45 @@ function JourAdmin({ jour: j, ouvert, onToggle, onSave }) {
             />
           </label>
 
+          {(j.prompt_2 || blocs?.some((b) => b.type === 'prompt' && b.n === 2)) && (
+            <label className="block text-sm">
+              <span className="font-bold text-navy">Le deuxième prompt</span>
+              <textarea
+                className="field mt-2 font-mono text-xs"
+                rows={10}
+                value={form.prompt_2 || ''}
+                onChange={(e) => setForm({ ...form, prompt_2: e.target.value })}
+              />
+            </label>
+          )}
+
+          {blocs?.map((b, i) =>
+            TEXTES_BLOC[b.type] ? (
+              <label key={i} className="block text-sm">
+                <span className="font-bold text-navy">{b.titre || TEXTES_BLOC[b.type]}</span>
+                <span className="mt-0.5 block text-xs text-muted">
+                  {b.type === 'fin' ? 'Sous le jour.' : 'Une ligne par point.'}
+                </span>
+                <textarea
+                  className="field mt-2"
+                  rows={b.type === 'fin' ? 3 : Math.max(3, b.items.length + 1)}
+                  value={b.type === 'fin' ? b.texte : b.items.join('\n')}
+                  onChange={(e) =>
+                    setBlocs(
+                      blocs.map((x, k) =>
+                        k !== i
+                          ? x
+                          : b.type === 'fin'
+                            ? { ...x, texte: e.target.value }
+                            : { ...x, items: e.target.value.split('\n') },
+                      ),
+                    )
+                  }
+                />
+              </label>
+            ) : null,
+          )}
+
           <label className="block text-sm">
             <span className="font-bold text-navy">Avant demain</span>
             <span className="mt-0.5 block text-xs text-muted">
@@ -386,6 +414,105 @@ function JourAdmin({ jour: j, ouvert, onToggle, onSave }) {
             {busy ? 'Enregistrement…' : 'Enregistrer ce jour'}
           </button>
           {erreur && <p className="text-sm font-semibold text-red-600">{erreur}</p>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Les blocs de texte d'une page, modifiables ici. */
+const TEXTES_BLOC = {
+  savoir: 'Bon à savoir',
+  encadre: 'Encadré',
+  reussi: 'Tu as réussi si…',
+  fin: 'Message de fin',
+}
+
+function nettoyerBloc(b) {
+  return b.items ? { ...b, items: b.items.map((e) => e.trim()).filter(Boolean) } : b
+}
+
+/** Les prompts de la page « Si ça ne marche pas ». */
+function SecoursAdmin() {
+  const [liste, setListe] = useState(null)
+
+  useEffect(() => {
+    supabase
+      .from('workshop_secours')
+      .select('*')
+      .order('position')
+      .then(({ data }) => setListe(data || []))
+  }, [])
+
+  if (!liste?.length) return null
+
+  return (
+    <>
+      <h2 className="mt-8 text-lg">Si ça ne marche pas</h2>
+      <div className="mt-4 space-y-3">
+        {liste.map((s) => (
+          <SecoursLigne key={s.cle} ligne={s} />
+        ))}
+      </div>
+    </>
+  )
+}
+
+function SecoursLigne({ ligne }) {
+  const [form, setForm] = useState(ligne)
+  const [ouvert, setOuvert] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState('')
+
+  async function enregistrer() {
+    setBusy(true)
+    setMessage('')
+    const { error } = await supabase
+      .from('workshop_secours')
+      .update({
+        titre: form.titre.trim(),
+        intro: form.intro?.trim() || null,
+        prompt: form.prompt,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('cle', ligne.cle)
+    setBusy(false)
+    setMessage(error ? `Enregistrement impossible : ${error.message}` : 'Enregistré.')
+  }
+
+  return (
+    <div className="card p-4">
+      <div className="flex items-center gap-3">
+        <b className="min-w-0 flex-1 font-title text-navy">{form.titre}</b>
+        <button onClick={() => setOuvert(!ouvert)} className="text-sm font-bold text-accent hover:underline">
+          {ouvert ? 'Fermer' : 'Modifier'}
+        </button>
+      </div>
+
+      {ouvert && (
+        <div className="mt-4 space-y-4">
+          <input
+            className="field"
+            value={form.titre}
+            onChange={(e) => setForm({ ...form, titre: e.target.value })}
+          />
+          <textarea
+            className="field"
+            rows={2}
+            value={form.intro || ''}
+            onChange={(e) => setForm({ ...form, intro: e.target.value })}
+            placeholder="Texte au-dessus du prompt (facultatif)"
+          />
+          <textarea
+            className="field font-mono text-xs"
+            rows={10}
+            value={form.prompt}
+            onChange={(e) => setForm({ ...form, prompt: e.target.value })}
+          />
+          <button onClick={enregistrer} disabled={busy || !form.prompt.trim()} className="btn">
+            {busy ? 'Enregistrement…' : 'Enregistrer ce prompt'}
+          </button>
+          {message && <p className="text-sm font-semibold text-muted">{message}</p>}
         </div>
       )}
     </div>
