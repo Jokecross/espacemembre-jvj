@@ -12,7 +12,8 @@ import { APP, OUTIL } from '../lib/marque'
  * ligne par jour. Chaque jour a sa page (WorkshopJour.jsx).
  *
  * Les sept jours se comptent depuis l'inscription de l'élève : le jour 1
- * s'ouvre au minuit suivant, qu'il soit venu ou non.
+ * est ouvert dès l'inscription, puis un jour s'ouvre à chaque minuit, qu'il
+ * soit venu ou non.
  *
  * Un jour s'ouvre à minuit chez l'élève — c'est la base qui le décide
  * (`mon_workshop`), pas le navigateur : le contenu d'un jour à venir
