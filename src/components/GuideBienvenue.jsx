@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase.js'
 import Icone from './Icone.jsx'
 import { APP, OFFRE, OUTIL } from '../lib/marque'
+import { useEtatWorkshop, videosOuvertes } from './ProgrammeVerrouille.jsx'
 
 const TOTAL = 4
 
@@ -99,7 +100,7 @@ function Bienvenue({ prenom, onSuivant }) {
 
       <p className="mt-3 text-[15px] leading-relaxed">
         Ce guide prend deux minutes. Il te montre par où commencer, te redonne le premier
-        prompt de ton {APP}, et te fait regarder la vidéo qui ouvre le programme.
+        prompt de ton {APP}, et te fait regarder ta première vidéo.
         Ensuite, tout l'espace est à toi.
       </p>
 
@@ -306,6 +307,8 @@ function Choix({ actif, onClick, children }) {
 /* ---------- 3. Le workshop ---------- */
 
 function Workshop({ onSuivant }) {
+  const etat = useEtatWorkshop()
+
   return (
     <>
       <h1 className="mt-5 text-[26px] leading-tight sm:text-3xl">
@@ -317,7 +320,6 @@ function Workshop({ onSuivant }) {
       <p className="mt-4 text-[15px] leading-relaxed">
         Chaque jour, un prompt à coller dans {OUTIL}. Et chaque jour, ton {APP} sait faire
         une chose de plus, jusqu'à ce que tu aies de quoi aller chercher ton premier client.
-        [À COMPLÉTER : ce que le workshop construit, jour par jour, une fois les prompts écrits.]
       </p>
 
       <p className="mt-3 text-[15px] leading-relaxed">
@@ -329,9 +331,9 @@ function Workshop({ onSuivant }) {
         <p className="font-title font-bold text-navy">Les trois premiers jours comptent double</p>
         <p className="mt-1.5 text-[15px] leading-relaxed">
           Au <b className="text-navy">jour 3</b>, toutes les vidéos de ton offre se débloquent
-          d'un coup. En attendant,{' '}
-          <b className="text-navy">tes trois premières vidéos sont déjà ouvertes</b> : tu peux
-          commencer dès ce soir.
+          d'un coup. En attendant, tu as déjà accès à{' '}
+          <b className="text-navy">{videosOuvertes(etat?.modules_avant)}</b> : tu peux commencer
+          dès ce soir.
         </p>
       </div>
 
@@ -342,19 +344,46 @@ function Workshop({ onSuivant }) {
   )
 }
 
-/* ---------- 4. La vidéo d'introduction ---------- */
+/* ---------- 4. La première vidéo ---------- */
 
-function Video({ lecons, onFini }) {
+/**
+ * Sans module d'introduction en base, c'est la première vidéo du programme
+ * qui clôt le guide : l'élève ne doit pas lire qu'une vidéo l'attend et ne
+ * trouver qu'un bouton.
+ */
+function Video({ lecons: intro, onFini }) {
+  const [lecons, setLecons] = useState(intro)
   const [n, setN] = useState(0)
   const [source, setSource] = useState(null)
   const [erreur, setErreur] = useState(null)
   const cadre = useRef(null)
 
   const lecon = lecons[n]
-  // S'il n'y a pas d'introduction en base, le guide ne doit pas enfermer
-  // l'élève devant un cadre vide.
+  // Sans aucune vidéo, le guide ne doit pas enfermer l'élève devant un
+  // cadre vide.
   const sansVideo = !lecon
   const derniere = n >= lecons.length - 1
+
+  useEffect(() => {
+    if (intro.length) return
+    let vivant = true
+    supabase.rpc('my_modules').then(async ({ data }) => {
+      const premier = (data || [])
+        .filter((m) => m.unlocked)
+        .sort((a, b) => a.position - b.position)[0]
+      if (!premier) return
+      const { data: liste } = await supabase
+        .from('lessons')
+        .select('id, title')
+        .eq('module_id', premier.id)
+        .order('position')
+        .limit(1)
+      if (vivant && liste?.length) setLecons(liste)
+    })
+    return () => {
+      vivant = false
+    }
+  }, [intro])
 
   useEffect(() => {
     if (sansVideo) return
@@ -367,6 +396,7 @@ function Video({ lecons, onFini }) {
           headers: { Authorization: `Bearer ${s.session.access_token}` },
         })
         if (!vivant) return
+        if (res.status === 404) return setErreur('Cette vidéo arrive très bientôt.')
         if (!res.ok) throw new Error('indisponible')
         setSource(await res.json())
       } catch {
@@ -435,14 +465,13 @@ function Video({ lecons, onFini }) {
   return (
     <>
       <h1 className="mt-5 text-[26px] leading-tight sm:text-3xl">
-        {lecon?.title || 'Introduction au programme'}
+        {lecon?.title || 'Ton programme est prêt'}
       </h1>
 
       <p className="mt-4 text-[15px] leading-relaxed">
-        Dernière étape : {lecons.length > 1 ? 'ces vidéos t\'expliquent' : "cette vidéo t'explique"}{' '}
-        comment le programme est construit et dans quel ordre avancer. Prends le temps de
-        {lecons.length > 1 ? ' les ' : ' la '}regarder — tu la retrouveras dans ton espace
-        quand tu voudras.
+        {sansVideo
+          ? 'Dernière étape : tes premières vidéos t\'attendent dans ton espace.'
+          : `Dernière étape : ${lecons.length > 1 ? 'tes premières vidéos' : 'ta première vidéo'}. Prends le temps de ${lecons.length > 1 ? 'les regarder' : 'la regarder'}, tu ${lecons.length > 1 ? 'les retrouveras' : 'la retrouveras'} dans ton espace quand tu voudras.`}
       </p>
 
       {lecons.length > 1 && (

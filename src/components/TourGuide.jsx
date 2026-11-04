@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { supabase } from '../lib/supabase.js'
 import { APP, OUTIL } from '../lib/marque'
+import { useEtatWorkshop, videosOuvertes } from './ProgrammeVerrouille.jsx'
 
 /**
  * Le tour de l'espace membre, juste après le guide de bienvenue.
@@ -17,8 +18,8 @@ const ARRETS = [
   {
     cle: 'accueil',
     titre: 'Ton programme',
-    texte:
-      "C'est ici que vivent les vidéos de ton programme, dans l'ordre : les trois premières sont déjà ouvertes, le reste s'ouvre au jour 3 de ton workshop.",
+    texte: (n) =>
+      `C'est ici que vivent les vidéos de ton programme, dans l'ordre. Tu as déjà accès à ${videosOuvertes(n)}, le reste s'ouvre au jour 3 de ton workshop.`,
   },
   {
     cle: 'workshop',
@@ -40,7 +41,10 @@ export default function TourGuide({ onFini }) {
   const [i, setI] = useState(0)
   const [zone, setZone] = useState(null)
 
+  const etat = useEtatWorkshop()
+
   const arret = ARRETS[i]
+  const texte = typeof arret.texte === 'function' ? arret.texte(etat?.modules_avant) : arret.texte
 
   // La cible change selon la largeur : barre latérale sur ordinateur,
   // barre d'onglets sur téléphone. On prend celle qui est à l'écran.
@@ -129,7 +133,7 @@ export default function TourGuide({ onFini }) {
         <h2 className="mt-3 font-title text-[19px] font-extrabold leading-tight text-navy">
           {arret.titre}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed">{arret.texte}</p>
+        <p className="mt-2 text-sm leading-relaxed">{texte}</p>
 
         <div className="mt-5 flex items-center gap-3">
           <button onClick={suivant} className="btn flex-1 px-5 py-2.5 text-sm">

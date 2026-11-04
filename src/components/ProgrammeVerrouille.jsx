@@ -12,13 +12,18 @@ import { supabase } from '../lib/supabase.js'
  * de laisser l'élève buter sur des cadenas sans explication, on lui dit
  * quand et pourquoi, et on l'envoie construire son outil en attendant.
  */
+/** Le nombre vient du réglage du back-office : aucun texte ne l'écrit en dur. */
+export function videosOuvertes(n) {
+  if (n === 1) return 'ta première vidéo'
+  return n > 1 ? `tes ${n} premières vidéos` : 'tes premières vidéos'
+}
+
 export default function ProgrammeVerrouille({ etat }) {
   if (!etat || etat.dispense || etat.equipe) return null
   if (etat.jour >= etat.jour_deblocage) return null
 
   const restants = etat.jour_deblocage - etat.jour
-  const n = etat.modules_avant ?? 1
-  const ouverts = n > 1 ? `tes ${n} premières vidéos` : 'ta première vidéo'
+  const ouverts = videosOuvertes(etat.modules_avant ?? 1)
 
   return (
     <section className="card flex flex-wrap items-center gap-4 border-accent/25 bg-gradient-to-r from-accent-pastel to-surface p-5">
