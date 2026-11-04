@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Icone from './Icone.jsx'
+import { copierTexte } from '../lib/copier.js'
 
 /**
  * Un prompt à copier. Le texte n'est jamais retouché : ce que l'élève colle
@@ -9,42 +10,10 @@ export default function PromptCopie({ id, titre, texte }) {
   const [copie, setCopie] = useState(false)
   const [entier, setEntier] = useState(false)
 
-  function fini() {
+  async function copier() {
+    if (!(await copierTexte(texte))) return
     setCopie(true)
     setTimeout(() => setCopie(false), 2000)
-  }
-
-  function secours() {
-    const zone = document.createElement('textarea')
-    zone.value = texte
-    zone.setAttribute('readonly', '')
-    zone.style.position = 'fixed'
-    zone.style.left = '-9999px'
-    document.body.appendChild(zone)
-    zone.select()
-    zone.setSelectionRange(0, texte.length)
-    let ok = false
-    try {
-      ok = document.execCommand('copy')
-    } catch {
-      ok = false
-    }
-    document.body.removeChild(zone)
-    if (ok) fini()
-  }
-
-  async function copier() {
-    try {
-      // Certains navigateurs laissent cette promesse en attente sans jamais
-      // répondre : passé ce délai, on prend la solution de secours.
-      await Promise.race([
-        navigator.clipboard.writeText(texte),
-        new Promise((_, non) => setTimeout(non, 1500)),
-      ])
-      fini()
-    } catch {
-      secours()
-    }
   }
 
   return (

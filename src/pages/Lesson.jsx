@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import OutilsSousVideo from '../components/OutilsSousVideo.jsx'
+import SousVideo from '../components/SousVideo.jsx'
 import Icone from '../components/Icone.jsx'
 import Couronne from '../components/Couronne.jsx'
 
@@ -25,7 +26,7 @@ export default function Lesson() {
     // introuvable, et on repart à l'accueil.
     supabase
       .from('lessons')
-      .select('id, title, module_id, position, avertissement, modules(title, position)')
+      .select('id, title, module_id, position, avertissement, sous_video, modules(title, position)')
       .eq('id', lessonId)
       .maybeSingle()
       .then(async ({ data, error: dbError }) => {
@@ -225,6 +226,8 @@ export default function Lesson() {
               )}
             </div>
           </div>
+
+          <SousVideo blocs={lesson.sous_video} />
 
           <OutilsSousVideo />
         </div>
